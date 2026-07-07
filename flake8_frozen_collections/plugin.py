@@ -2,28 +2,28 @@ import ast
 from collections.abc import Generator, Iterable
 from typing import final
 
-_DICT_ERROR = 'FCS100 use frozendict instead of dict'
-_SET_ERROR = 'FCS200 use frozenset instead of set'
-_FROZEN_CONSTRUCTORS = frozenset({'frozendict', 'frozenset'})
+_DICT_ERROR = "FCS100 use frozendict instead of dict"
+_SET_ERROR = "FCS200 use frozenset instead of set"
+_FROZEN_CONSTRUCTORS = frozenset({"frozendict", "frozenset"})
 
 
 def _is_dict_type(node: ast.expr) -> bool:
-    if isinstance(node, ast.Name) and node.id == 'dict':
+    if isinstance(node, ast.Name) and node.id == "dict":
         return True
     if isinstance(node, ast.Subscript) and isinstance(node.value, ast.Name):
-        return node.value.id == 'dict'
+        return node.value.id == "dict"
     if isinstance(node, ast.Subscript) and isinstance(node.value, ast.Attribute):
-        return node.value.attr == 'Dict'
+        return node.value.attr == "Dict"
     return False
 
 
 def _is_set_type(node: ast.expr) -> bool:
-    if isinstance(node, ast.Name) and node.id == 'set':
+    if isinstance(node, ast.Name) and node.id == "set":
         return True
     if isinstance(node, ast.Subscript) and isinstance(node.value, ast.Name):
-        return node.value.id == 'set'
+        return node.value.id == "set"
     if isinstance(node, ast.Subscript) and isinstance(node.value, ast.Attribute):
-        return node.value.attr == 'Set'
+        return node.value.attr == "Set"
     return False
 
 
@@ -36,18 +36,20 @@ def _iter_isinstance_types(node: ast.expr) -> Iterable[ast.expr]:
 
 def _set_parent_links(node: ast.AST) -> None:
     for child in ast.iter_child_nodes(node):
-        setattr(child, '_parent', node)
+        setattr(child, "_parent", node)
         _set_parent_links(child)
 
 
 def _is_type_annotation(node: ast.AST) -> bool:
-    parent = getattr(node, '_parent', None)
+    parent = getattr(node, "_parent", None)
     if isinstance(parent, ast.arg):
         return parent.annotation is node
     if isinstance(parent, ast.AnnAssign):
         return parent.annotation is node
     if isinstance(parent, (ast.FunctionDef, ast.AsyncFunctionDef)):
         return parent.returns is node
+    if isinstance(parent, ast.BinOp):
+        return _is_type_annotation(parent)
     if isinstance(parent, ast.Subscript):
         return _is_type_annotation(parent)
     return False
@@ -63,7 +65,7 @@ class FrozenCollectionsVisitor(ast.NodeVisitor):
 
     def visit(self, node: ast.AST) -> None:
         for child in ast.iter_child_nodes(node):
-            setattr(child, '_parent', node)
+            setattr(child, "_parent", node)
         super().visit(node)
 
     def _report(self, node: ast.expr, message: str) -> None:
@@ -76,11 +78,11 @@ class FrozenCollectionsVisitor(ast.NodeVisitor):
                 self.generic_visit(node)
                 self._frozen_ctor_depth -= 1
                 return
-            if node.func.id == 'dict':
+            if node.func.id == "dict":
                 self._report(node, _DICT_ERROR)
-            elif node.func.id == 'set':
+            elif node.func.id == "set":
                 self._report(node, _SET_ERROR)
-            elif node.func.id == 'isinstance' and len(node.args) >= 2:
+            elif node.func.id == "isinstance" and len(node.args) >= 2:
                 for type_node in _iter_isinstance_types(node.args[1]):
                     if _is_dict_type(type_node):
                         self._report(node, _DICT_ERROR)
@@ -115,14 +117,14 @@ class FrozenCollectionsVisitor(ast.NodeVisitor):
         self.generic_visit(node)
 
     def visit_Name(self, node: ast.Name) -> None:
-        parent = getattr(node, '_parent', None)
+        parent = getattr(node, "_parent", None)
         if isinstance(parent, ast.Subscript) and parent.value is node:
             self.generic_visit(node)
             return
         if _is_type_annotation(node):
-            if node.id == 'dict':
+            if node.id == "dict":
                 self._report(node, _DICT_ERROR)
-            elif node.id == 'set':
+            elif node.id == "set":
                 self._report(node, _SET_ERROR)
         self.generic_visit(node)
 
@@ -131,8 +133,8 @@ class FrozenCollectionsVisitor(ast.NodeVisitor):
 class Plugin:
     """Flake8 plugin."""
 
-    name = 'flake8-frozen-collections'
-    version = '0.1.0'
+    name = "flake8-frozen-collections"
+    version = "0.1.0"
 
     def __init__(self, tree: ast.AST) -> None:
         self._tree = tree

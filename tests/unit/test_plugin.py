@@ -88,9 +88,33 @@ def test_allowed_code(plugin_run: _PLUGIN_RUN_T, code: str) -> None:
     assert plugin_run(code) == []
 
 
+def test_union_argument_type(plugin_run):
+    code = '\n'.join([
+        'def foo(val: dict | None):',
+        '    pass',
+    ])
+    assert plugin_run(code) == [(1, 13, 'FCS100 use frozendict instead of dict')]
+
+
+def test_optional_argument_type(plugin_run):
+    code = '\n'.join([
+        'def foo(val: Optional[dict]):',
+        '    pass',
+    ])
+    assert plugin_run(code) == [(1, 22, 'FCS100 use frozendict instead of dict')]
+
+
 def test_union_return_type(plugin_run):
     code = '\n'.join([
         'def foo() -> dict | None:',
         '    pass',
     ])
-    assert False, plugin_run(code)
+    assert plugin_run(code) == [(1, 13, 'FCS100 use frozendict instead of dict')]
+
+
+def test_optional_return_type(plugin_run):
+    code = '\n'.join([
+        'def foo() -> Optional[dict]:',
+        '    pass',
+    ])
+    assert plugin_run(code) == [(1, 22, 'FCS100 use frozendict instead of dict')]
