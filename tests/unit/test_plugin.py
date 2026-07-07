@@ -124,3 +124,9 @@ def test_comparsion(plugin_run):
     code = 'frozendict({k: k for k in range(10)})'
 
     assert not plugin_run(code)
+
+
+def test_dict_classmethod(plugin_run):
+    code = 'dict.fromkeys([1,2,3])'
+
+    assert plugin_run(code)

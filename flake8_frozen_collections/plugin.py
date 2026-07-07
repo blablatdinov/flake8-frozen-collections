@@ -88,6 +88,17 @@ class FrozenCollectionsVisitor(ast.NodeVisitor):
                         self._report(node, _DICT_ERROR)
                     elif _is_set_type(type_node):
                         self._report(node, _SET_ERROR)
+        elif isinstance(node.func, ast.Attribute):
+            if node.func.attr in _FROZEN_CONSTRUCTORS:
+                self._frozen_ctor_depth += 1
+                self.generic_visit(node)
+                self._frozen_ctor_depth -= 1
+                return
+            if isinstance(node.func.value, ast.Name):
+                if node.func.value.id == "dict":
+                    self._report(node, _DICT_ERROR)
+                elif node.func.value.id == "set":
+                    self._report(node, _SET_ERROR)
         self.generic_visit(node)
 
     def visit_Dict(self, node: ast.Dict) -> None:
