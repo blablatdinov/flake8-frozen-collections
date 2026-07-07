@@ -118,3 +118,9 @@ def test_optional_return_type(plugin_run):
         '    pass',
     ])
     assert plugin_run(code) == [(1, 22, 'FCS100 use frozendict instead of dict')]
+
+
+def test_comparsion(plugin_run):
+    code = 'frozendict({k: k for k in range(10)})'
+
+    assert not plugin_run(code)

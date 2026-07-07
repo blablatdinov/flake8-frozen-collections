@@ -101,11 +101,13 @@ class FrozenCollectionsVisitor(ast.NodeVisitor):
         self.generic_visit(node)
 
     def visit_DictComp(self, node: ast.DictComp) -> None:
-        self._report(node, _DICT_ERROR)
+        if self._frozen_ctor_depth == 0:
+            self._report(node, _DICT_ERROR)
         self.generic_visit(node)
 
     def visit_SetComp(self, node: ast.SetComp) -> None:
-        self._report(node, _SET_ERROR)
+        if self._frozen_ctor_depth == 0:
+            self._report(node, _SET_ERROR)
         self.generic_visit(node)
 
     def visit_Subscript(self, node: ast.Subscript) -> None:
