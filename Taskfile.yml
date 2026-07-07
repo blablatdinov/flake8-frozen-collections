@@ -1,0 +1,81 @@
+---
+version: '3'
+
+vars:
+  DOCKER_IMG: flake8-plugin-dev
+  SRC_DIR: flake8_frozen_collections
+  TESTS_DIR: tests
+
+tasks:
+
+  docker-setup:
+    cmds:
+      - docker build -t {{.DOCKER_IMG}} .
+
+  docker-bash:
+    cmds:
+      - docker run -it --rm -v $(pwd):/app --name {{.DOCKER_IMG}} {{.DOCKER_IMG}} bash
+
+  default:
+    desc: "Build pipeline"
+    deps: [install-deps,unit-tests,integration-tests,ec,lint,build]
+
+  build:
+    desc: "Build the app"
+    deps: [install-deps]
+    cmds:
+      - poetry build
+
+  install-deps:
+    desc: "Install dependencies"
+    cmds:
+      - poetry install
+
+  syntax-check:
+    cmds:
+    - poetry run ruff check {{.SRC_DIR}} {{.TESTS_DIR}} --select=F --ignore=F401,F841
+
+  type-check:
+    cmds:
+      - poetry run mypy {{.SRC_DIR}} {{.TESTS_DIR}} --strict
+
+  test:
+    deps: [syntax-check,type-check]
+    cmds:
+      - poetry run pytest {{.CLI_ARGS}} -s -vv
+
+  unit-tests:
+    desc: "Run unit tests"
+    cmds:
+      - poetry run pytest {{.TESTS_DIR}}/unit
+
+  integration-tests:
+    desc: "Run integration tests"
+    cmds:
+      - poetry run pytest {{.TESTS_DIR}}/it
+
+  fmt:
+    desc: "Run formatters"
+    cmds:
+      - poetry run ruff check {{.SRC_DIR}} {{.TESTS_DIR}} --fix --fix-only
+
+  lint:
+    desc: "Run linters"
+    cmds:
+      - poetry run ruff check {{.SRC_DIR}} {{.TESTS_DIR}}
+      - ./lint-venv/bin/flake8 {{.SRC_DIR}} {{.TESTS_DIR}}
+      - poetry run mypy {{.SRC_DIR}} tests --strict
+
+  cspell-baseline:
+    desc: "Generate cspell baseline"
+    cmds:
+      - git ls-files | xargs cspell --words-only | sort -uf > cspell_custom_words.txt
+
+  ec:
+    cmds:
+      - git ls-files | xargs ec
+
+  clean:
+    desc: "Clean caches"
+    cmds:
+      - git clean -f -d -x

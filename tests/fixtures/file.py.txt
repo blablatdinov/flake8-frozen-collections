@@ -1,0 +1,13 @@
+from frozendict import frozendict
+
+
+def get_mapping() -> dict[str, int]:
+    return {"a": 1, "b": 2}
+
+
+def get_tags() -> set[str]:
+    return {"x", "y"}
+
+
+VALID = frozendict({"ok": 1})
+ALSO_VALID = frozenset({"ok"})

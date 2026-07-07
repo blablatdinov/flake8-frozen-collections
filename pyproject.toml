@@ -1,0 +1,41 @@
+[tool.poetry]
+name = "flake8-frozen-collections"
+description = "Flake8 plugin that requires frozendict and frozenset instead of dict and set"
+version = "0.1.0"
+license = "MIT"
+
+authors = []
+
+readme = "README.md"
+
+packages = [{ include = "flake8_frozen_collections" }]
+
+repository = "https://github.com/moment/flake8-frozen-collections"
+
+keywords = []
+
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Operating System :: OS Independent",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+flake8 = ">=7.0.0"
+
+[tool.poetry.plugins."flake8.extension"]
+FCS = "flake8_frozen_collections.plugin:Plugin"
+
+[tool.poetry.group.dev.dependencies]
+mypy = "1.19.1"
+ruff = "0.14.0"
+pytest = "9.0.2"
+pytest-cov = "7.0.0"
+pytest-randomly = "4.0.1"
+astpretty = "3.0.0"
+
+[build-system]
+requires = ["poetry-core>=1.9.0"]
+build-backend = "poetry.core.masonry.api"
