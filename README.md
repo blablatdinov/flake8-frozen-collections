@@ -1,42 +1,42 @@
 # flake8-frozen-collections
 
-Flake8-плагин, который запрещает использование изменяемых `dict` и `set` и требует `frozendict` и `frozenset`.
+A Flake8 plugin that prohibits the use of mutable `dict` and `set`, requiring `frozendict` and `frozenset` instead.
 
-## Установка
+## Installation
 
 ```bash
 pip install flake8-frozen-collections
 ```
 
-## Использование
+## Usage
 
 ```bash
 flake8 your_project/
 ```
 
-## Коды ошибок
+## Error Codes
 
-| Код | Описание |
-|-----|----------|
-| FCS100 | Используйте `frozendict` вместо `dict` |
-| FCS200 | Используйте `frozenset` вместо `set` |
+| Code  | Description                              |
+|-------|------------------------------------------|
+| FCS100 | Use `frozendict` instead of `dict`      |
+| FCS200 | Use `frozenset` instead of `set`        |
 
-## Что проверяется
+## What Is Checked
 
-- литералы `{...}` и `{key: value}`
-- вызовы `dict(...)` и `set(...)`
+- Literals `{...}` and `{key: value}`
+- Calls to `dict(...)` and `set(...)`
 - dict/set comprehensions
-- аннотации типов `dict[...]`, `set[...]`, `dict`, `set`
-- проверки `isinstance(..., dict)` и `isinstance(..., set)`
+- Type annotations `dict[...]`, `set[...]`, `dict`, `set`
+- Checks `isinstance(..., dict)` and `isinstance(..., set)`
 
-## Пример
+## Example
 
 ```python
-# Плохо
+# Bad
 mapping: dict[str, int] = {"a": 1}
 tags: set[str] = {"x", "y"}
 
-# Хорошо
+# Good
 from frozendict import frozendict
 
 mapping = frozendict({"a": 1})
